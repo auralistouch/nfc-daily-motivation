@@ -1,59 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Daily Motivation</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Image</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+    }
 
-<style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-body{
-margin:0;
-background:black;
-}
+    img {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+    }
 
-img{
-width:100vw;
-height:100vh;
-object-fit:cover;
-display:block;
-}
-
-</style>
-
+    #loading {
+      position: fixed;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+    }
+  </style>
 </head>
-
 <body>
+  <div id="loading">Loading...</div>
+  <img id="dailyImage" alt="Daily Image" style="display:none;" />
 
-<img id="dailyImage">
+  <script>
+    const totalImages = 30;
 
-<script>
+    const today = new Date();
+    const dateSeed =
+      today.getFullYear() * 10000 +
+      (today.getMonth() + 1) * 100 +
+      today.getDate();
 
-const totalImages = 30;
+    const userSeed = Math.floor(Math.random() * 1000000);
+    const randomNumber = ((dateSeed + userSeed) % totalImages) + 1;
 
-// 获取今天日期
-const today = new Date();
+    const imagePath = "images/" + randomNumber + ".jpg";
 
-// 年月日
-const dateSeed =
-today.getFullYear() +
-(today.getMonth()+1) +
-today.getDate();
+    const img = document.getElementById("dailyImage");
+    const loading = document.getElementById("loading");
 
-// 每个用户不同随机
-const userSeed = Math.random();
+    const preloader = new Image();
+    preloader.src = imagePath;
 
-// 合并随机
-const seed = dateSeed * userSeed;
+    preloader.onload = function () {
+      img.src = imagePath;
+      img.style.display = "block";
+      loading.style.display = "none";
+    };
 
-// 生成随机图片
-const randomNumber =
-Math.floor(seed % totalImages) + 1;
-
-// 显示图片
-document.getElementById("dailyImage").src =
-"images/" + randomNumber + ".jpg";
-
-</script>
-
+    preloader.onerror = function () {
+      loading.innerText = "Image failed to load";
+    };
+  </script>
 </body>
 </html>
