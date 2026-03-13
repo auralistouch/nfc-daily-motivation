@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Daily Motivation</title>
+
+<style>
+
+body{
+background:black;
+color:white;
+font-family:Arial;
+text-align:center;
+padding:30px;
+}
+
+img{
+max-width:90%;
+border-radius:15px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Today's Motivation</h2>
+
+<img id="dailyImage">
+
+<script>
+
+const totalImages = 30;
+
+// 获取今天日期
+const today = new Date();
+
+// 年月日
+const dateSeed =
+today.getFullYear() +
+(today.getMonth()+1) +
+today.getDate();
+
+// 每个用户不同随机
+const userSeed = Math.random();
+
+// 合并随机
+const seed = dateSeed * userSeed;
+
+// 生成随机图片
+const randomNumber =
+Math.floor(seed % totalImages) + 1;
+
+// 显示图片
+document.getElementById("dailyImage").src =
+"images/" + randomNumber + ".jpg";
+
+</script>
+
+</body>
+</html>
