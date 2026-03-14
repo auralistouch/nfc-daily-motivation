@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NFC Daily Image</title>
+<title>NFC Daily</title>
 
 <style>
+
 html,body{
 margin:0;
 padding:0;
@@ -20,6 +21,7 @@ width:100vw;
 height:100vh;
 object-fit:cover;
 }
+
 </style>
 
 </head>
@@ -32,24 +34,24 @@ object-fit:cover;
 
 const totalImages = 30;
 
-// 读取手链ID
+// 获取ID
 const params = new URLSearchParams(window.location.search);
 const braceletId = params.get("id") || "A000";
 
-// 提取编号数字
+// 提取编号
 const idNumber = parseInt(braceletId.replace(/\D/g,'')) || 0;
 
 // 获取今天日期
 const today = new Date();
 const daySeed =
-today.getFullYear()*1000 +
-(today.getMonth()+1)*50 +
+today.getFullYear()*10000 +
+(today.getMonth()+1)*100 +
 today.getDate();
 
-// 产品级算法
-const imageNumber = ((idNumber + daySeed) % totalImages) + 1;
+// 更稳定算法
+const imageNumber =
+((idNumber * 17 + daySeed * 13) % totalImages) + 1;
 
-// 图片路径
 const imagePath = "images/" + imageNumber + ".jpg";
 
 // 防缓存
