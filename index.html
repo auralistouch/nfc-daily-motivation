@@ -1,78 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Auralis Touch</title>
 
-<title>Auralis Touch</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+    }
 
-<style>
+    #dailyImage {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+      background: black;
+    }
 
-html,body{
-margin:0;
-padding:0;
-width:100%;
-height:100%;
-background:black;
-overflow:hidden;
-}
-
-#dailyImage{
-width:100vw;
-height:100vh;
-object-fit:cover;
-display:block;
-opacity:0;
-transition:opacity 0.3s ease;
-}
-
-</style>
-
+    #errorBox {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 20px;
+      z-index: 9999;
+      color: white;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      font-family: Arial, sans-serif;
+      display: none;
+      word-break: break-all;
+    }
+  </style>
 </head>
-
 <body>
+  <img id="dailyImage" alt="Daily Image" />
+  <div id="errorBox"></div>
 
-<img id="dailyImage">
+  <script>
+    const totalImages = 30;
 
-<script>
+    // 读取手链ID，例如 ?id=A001
+    const params = new URLSearchParams(window.location.search);
+    const braceletId = params.get("id") || "A000";
 
-const totalImages = 30;
+    // 提取数字部分，例如 A001 -> 1
+    const idNumber = parseInt(braceletId.replace(/\D/g, ""), 10) || 0;
 
-// 读取手链ID
-const params = new URLSearchParams(window.location.search);
-const braceletId = params.get("id") || "A000";
+    // 获取今天是一年中的第几天
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 0);
+    const diff = today - startOfYear;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
 
-// 提取编号数字
-const idNumber = parseInt(braceletId.replace(/\D/g,'')) || 0;
+    // 正式版算法：同一天不同编号尽量分散，第二天自动变化
+    const imageNumber = ((idNumber + dayOfYear - 1) % totalImages) + 1;
 
-// 获取今天日期
-const today = new Date();
-const startOfYear = new Date(today.getFullYear(),0,0);
-const diff = today - startOfYear;
-const oneDay = 1000*60*60*24;
-const dayOfYear = Math.floor(diff/oneDay);
+    const imagePath = "images/" + imageNumber + ".jpg";
+    const finalSrc = imagePath + "?v=" + Date.now();
 
-// 算法（稳定且分布均匀）
-const imageNumber = ((idNumber * 17 + dayOfYear * 13) % totalImages) + 1;
+    const displayImg = document.getElementById("dailyImage");
+    const errorBox = document.getElementById("errorBox");
 
-const imagePath = "images/" + imageNumber + ".jpg";
+    displayImg.onload = function () {
+      errorBox.style.display = "none";
+    };
 
-// 预加载图片（加快显示）
-const img = new Image();
+    displayImg.onerror = function () {
+      errorBox.style.display = "block";
+      errorBox.innerHTML =
+        "图片加载失败<br>" +
+        "ID: " + braceletId + "<br>" +
+        "Image Number: " + imageNumber + "<br>" +
+        "Path: " + imagePath + "<br><br>" +
+        "请检查 images 文件夹里是否有：" + imageNumber + ".jpg";
+    };
 
-img.src = imagePath + "?v=" + Date.now();
-
-img.onload = function(){
-
-const displayImg = document.getElementById("dailyImage");
-
-displayImg.src = img.src;
-
-displayImg.style.opacity = 1;
-
-};
-
-</script>
-
+    displayImg.src = finalSrc;
+  </script>
 </body>
 </html>
