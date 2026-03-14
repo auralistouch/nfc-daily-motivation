@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+  <meta http-equiv="Cache-Control" content="no-cache" />
   <title>Auralis Touch</title>
+
   <style>
     html, body {
       margin: 0;
@@ -28,21 +33,42 @@
 
   <script>
     const totalImages = 30;
+    const img = document.getElementById("dailyImage");
 
-    const params = new URLSearchParams(window.location.search);
-    const braceletId = params.get("id") || "A000";
+    function getImageSrc() {
+      const params = new URLSearchParams(window.location.search);
+      const braceletId = params.get("id") || "A000";
 
-    const idNumber = parseInt(braceletId.replace(/\D/g, ""), 10) || 0;
+      const idNumber = parseInt(braceletId.replace(/\D/g, ""), 10) || 0;
 
-    const today = new Date();
-    const startOfYear = new Date(today.getFullYear(), 0, 0);
-    const diff = today - startOfYear;
-    const oneDay = 1000 * 60 * 60 * 24;
-    const dayOfYear = Math.floor(diff / oneDay);
+      const today = new Date();
+      const startOfYear = new Date(today.getFullYear(), 0, 0);
+      const diff = today - startOfYear;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor(diff / oneDay);
 
-    const imageNumber = ((idNumber + dayOfYear - 1) % totalImages) + 1;
+      const imageNumber = ((idNumber + dayOfYear - 1) % totalImages) + 1;
+      return "images/" + imageNumber + ".jpg";
+    }
 
-    document.getElementById("dailyImage").src = "images/" + imageNumber + ".jpg";
+    function showImage() {
+      const src = getImageSrc();
+      img.removeAttribute("src");
+      setTimeout(() => {
+        img.src = src;
+      }, 30);
+    }
+
+    showImage();
+
+    window.addEventListener("pageshow", showImage);
+    window.addEventListener("focus", showImage);
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        showImage();
+      }
+    });
   </script>
 </body>
 </html>
