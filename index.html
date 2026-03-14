@@ -1,53 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NFC Daily</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Auralis Touch</title>
 
-<style>
-html,body{
-margin:0;
-padding:0;
-width:100%;
-height:100%;
-background:black;
-}
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+    }
 
-img{
-width:100vw;
-height:100vh;
-object-fit:cover;
-display:block;
-}
-</style>
+    #dailyImage {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+      background: black;
+    }
+
+    #errorBox {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 20px;
+      z-index: 9999;
+      color: white;
+      background: rgba(0, 0, 0, 0.72);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      font-family: Arial, sans-serif;
+      display: none;
+      word-break: break-all;
+    }
+  </style>
 </head>
-
 <body>
+  <img id="dailyImage" alt="Daily Image" />
+  <div id="errorBox"></div>
 
-<img id="dailyImage">
+  <script>
+    const totalImages = 30;
+    const imgEl = document.getElementById("dailyImage");
+    const errorBox = document.getElementById("errorBox");
 
-<script>
+    function getImageNumber() {
+      const params = new URLSearchParams(window.location.search);
+      const braceletId = params.get("id") || "A000";
 
-const totalImages = 30;
+      const idNumber = parseInt(braceletId.replace(/\D/g, ""), 10) || 0;
 
-const params = new URLSearchParams(window.location.search);
-const braceletId = params.get("id") || "A000";
+      const today = new Date();
+      const startOfYear = new Date(today.getFullYear(), 0, 0);
+      const diff = today - startOfYear;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor(diff / oneDay);
 
-const idNumber = parseInt(braceletId.replace(/\D/g,'')) || 0;
+      return ((idNumber + dayOfYear - 1) % totalImages) + 1;
+    }
 
-const today = new Date();
-const startOfYear = new Date(today.getFullYear(),0,0);
-const diff = today - startOfYear;
-const oneDay = 1000*60*60*24;
-const dayOfYear = Math.floor(diff/oneDay);
+    function getImageSrc() {
+      const imageNumber = getImageNumber();
+      const today = new Date();
+      const dayKey =
+        today.getFullYear().toString() +
+        String(today.getMonth() + 1).padStart(2, "0") +
+        String(today.getDate()).padStart(2, "0");
 
-const imageNumber = ((idNumber + dayOfYear - 1) % totalImages) + 1;
+      return {
+        imageNumber,
+        src: "images/" + imageNumber + ".jpg?d=" + dayKey
+      };
+    }
 
-document.getElementById("dailyImage").src =
-"images/" + imageNumber + ".jpg";
+    function loadDailyImage() {
+      const result = getImageSrc();
 
-</script>
+      errorBox.style.display = "none";
 
+      // 先清掉旧图，再重新赋值，避免 Safari 连续扫时黑屏不刷新
+      imgEl.removeAttribute("src");
+      imgEl.src = result.src;
+
+      imgEl.onerror = function () {
+        errorBox.style.display = "block";
+        errorBox.innerHTML =
+          "图片加载失败<br>" +
+          "Image Number: " + result.imageNumber + "<br>" +
+          "Path: images/" + result.imageNumber + ".jpg";
+      };
+    }
+
+    // 首次打开
+    loadDailyImage();
+
+    // 处理 Safari 从缓存恢复页面
+    window.addEventListener("pageshow", function () {
+      loadDailyImage();
+    });
+
+    // 从后台回到前台时再加载一次
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        loadDailyImage();
+      }
+    });
+
+    // 获得焦点时再加载一次
+    window.addEventListener("focus", function () {
+      loadDailyImage();
+    });
+  </script>
 </body>
 </html>
