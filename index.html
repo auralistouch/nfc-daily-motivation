@@ -1,88 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>NFC Debug</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+<title>Auralis Touch</title>
 
-    #dailyImage {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      display: block;
-    }
+<style>
 
-    #debugBox {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      z-index: 9999;
-      background: rgba(0, 0, 0, 0.65);
-      color: #fff;
-      font-size: 14px;
-      line-height: 1.5;
-      padding: 10px 12px;
-      border-radius: 10px;
-      word-break: break-all;
-    }
-  </style>
+html,body{
+margin:0;
+padding:0;
+width:100%;
+height:100%;
+background:black;
+overflow:hidden;
+}
+
+#dailyImage{
+width:100vw;
+height:100vh;
+object-fit:cover;
+display:block;
+opacity:0;
+transition:opacity 0.3s ease;
+}
+
+</style>
+
 </head>
+
 <body>
-  <div id="debugBox">Loading debug info...</div>
-  <img id="dailyImage" alt="Daily Image" />
 
-  <script>
-    const totalImages = 30;
+<img id="dailyImage">
 
-    const fullUrl = window.location.href;
-    const params = new URLSearchParams(window.location.search);
-    const braceletId = params.get("id") || "DEFAULT";
+<script>
 
-    const today = new Date();
-    const dateString =
-      today.getFullYear().toString() +
-      String(today.getMonth() + 1).padStart(2, "0") +
-      String(today.getDate()).padStart(2, "0");
+const totalImages = 30;
 
-    function stringToNumber(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = (hash * 31 + str.charCodeAt(i)) % 1000000007;
-      }
-      return hash;
-    }
+// 读取手链ID
+const params = new URLSearchParams(window.location.search);
+const braceletId = params.get("id") || "A000";
 
-    const seed = stringToNumber(braceletId + dateString);
-    const imageNumber = (seed % totalImages) + 1;
-    const imagePath = "images/" + imageNumber + ".jpg";
-    const finalImageSrc = imagePath + "?v=" + Date.now();
+// 提取编号数字
+const idNumber = parseInt(braceletId.replace(/\D/g,'')) || 0;
 
-    document.getElementById("dailyImage").src = finalImageSrc;
+// 获取今天日期
+const today = new Date();
+const startOfYear = new Date(today.getFullYear(),0,0);
+const diff = today - startOfYear;
+const oneDay = 1000*60*60*24;
+const dayOfYear = Math.floor(diff/oneDay);
 
-    document.getElementById("debugBox").innerHTML =
-      "Full URL: " + fullUrl + "<br>" +
-      "ID: " + braceletId + "<br>" +
-      "Date: " + dateString + "<br>" +
-      "Image Number: " + imageNumber + "<br>" +
-      "Image Path: " + imagePath;
-  </script>
+// 算法（稳定且分布均匀）
+const imageNumber = ((idNumber * 17 + dayOfYear * 13) % totalImages) + 1;
+
+const imagePath = "images/" + imageNumber + ".jpg";
+
+// 预加载图片（加快显示）
+const img = new Image();
+
+img.src = imagePath + "?v=" + Date.now();
+
+img.onload = function(){
+
+const displayImg = document.getElementById("dailyImage");
+
+displayImg.src = img.src;
+
+displayImg.style.opacity = 1;
+
+};
+
+</script>
+
 </body>
 </html>
