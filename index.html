@@ -1,74 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  />
-  <meta http-equiv="Cache-Control" content="no-cache" />
-  <title>Auralis Touch</title>
-
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      overflow: hidden;
-    }
-
-    #dailyImage {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      display: block;
-      background: black;
-    }
-  </style>
+    <title>我的NFC专属时刻</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { text-align: center; font-family: sans-serif; padding: 20px; }
+        img { max-width: 100%; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .content { margin-top: 20px; color: #333; line-height: 1.6; }
+    </style>
 </head>
 <body>
-  <img id="dailyImage" alt="Daily Image" />
+    <div id="display-area">
+        <img id="daily-image" src="" alt="今日图片加载中...">
+        <div id="daily-text" class="content">加载中...</div>
+    </div>
 
-  <script>
-    const totalImages = 30;
-    const img = document.getElementById("dailyImage");
+    <script>
+        // 1. 获取或生成用户唯一ID (保存在浏览器里)
+        let userId = localStorage.getItem('nfc_user_id');
+        if (!userId) {
+            userId = Math.floor(Math.random() * 10000); // 随机生成一个数字
+            localStorage.setItem('nfc_user_id', userId);
+        }
 
-    function getImageSrc() {
-      const params = new URLSearchParams(window.location.search);
-      const braceletId = params.get("id") || "A000";
+        // 2. 获取当前日期（天数）
+        const now = new Date();
+        const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
 
-      const idNumber = parseInt(braceletId.replace(/\D/g, ""), 10) || 0;
+        // 3. 计算逻辑：(年度天数 + 用户ID) 除以 30 取余数，得到 1-30 之间的数
+        // 这样保证了：每天数字会变，且不同用户ID计算出的结果也不同
+        const totalItems = 30; // 以后扩展到365时，把这里改写成 365
+        const currentId = ((dayOfYear + parseInt(userId)) % totalItems) + 1;
 
-      const today = new Date();
-      const startOfYear = new Date(today.getFullYear(), 0, 0);
-      const diff = today - startOfYear;
-      const oneDay = 1000 * 60 * 60 * 24;
-      const dayOfYear = Math.floor(diff / oneDay);
-
-      const imageNumber = ((idNumber + dayOfYear - 1) % totalImages) + 1;
-      return "images/" + imageNumber + ".jpg";
-    }
-
-    function showImage() {
-      const src = getImageSrc();
-      img.removeAttribute("src");
-      setTimeout(() => {
-        img.src = src;
-      }, 30);
-    }
-
-    showImage();
-
-    window.addEventListener("pageshow", showImage);
-    window.addEventListener("focus", showImage);
-
-    document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") {
-        showImage();
-      }
-    });
-  </script>
+        // 4. 更新页面内容
+        document.getElementById('daily-image').src = 'images/' + currentId + '.jpg';
+        
+        // 读取对应的文字文件 (假设你放了 txt 并在 texts 文件夹)
+        fetch('texts/' + currentId + '.txt')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('daily-text').innerText = data;
+            })
+            .catch(() => {
+                document.getElementById('daily-text').innerText = "今天的惊喜已送达";
+            });
+    </script>
 </body>
 </html>
