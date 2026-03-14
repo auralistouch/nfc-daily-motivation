@@ -22,70 +22,35 @@
       display: block;
       background: black;
     }
-
-    #errorBox {
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: 20px;
-      z-index: 9999;
-      color: white;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      line-height: 1.5;
-      font-family: Arial, sans-serif;
-      display: none;
-      word-break: break-all;
-    }
   </style>
 </head>
 <body>
-  <img id="dailyImage" alt="Daily Image" />
-  <div id="errorBox"></div>
+  <img id="dailyImage" alt="Daily Image" fetchpriority="high" />
 
   <script>
     const totalImages = 30;
 
-    // 读取手链ID，例如 ?id=A001
+    // 读取网址里的手链ID，例如 ?id=A001
     const params = new URLSearchParams(window.location.search);
     const braceletId = params.get("id") || "A000";
 
-    // 提取数字部分，例如 A001 -> 1
+    // 提取数字部分，例如 A001 -> 1，A002 -> 2
     const idNumber = parseInt(braceletId.replace(/\D/g, ""), 10) || 0;
 
-    // 获取今天是一年中的第几天
+    // 计算今天是一年中的第几天
     const today = new Date();
     const startOfYear = new Date(today.getFullYear(), 0, 0);
     const diff = today - startOfYear;
     const oneDay = 1000 * 60 * 60 * 24;
     const dayOfYear = Math.floor(diff / oneDay);
 
-    // 正式版算法：同一天不同编号尽量分散，第二天自动变化
+    // 正式版算法
+    // 同一天：A001、A002、A003 会尽量显示不同图片
+    // 第二天：会自动整体往后轮换
     const imageNumber = ((idNumber + dayOfYear - 1) % totalImages) + 1;
 
-    const imagePath = "images/" + imageNumber + ".jpg";
-    const finalSrc = imagePath + "?v=" + Date.now();
-
-    const displayImg = document.getElementById("dailyImage");
-    const errorBox = document.getElementById("errorBox");
-
-    displayImg.onload = function () {
-      errorBox.style.display = "none";
-    };
-
-    displayImg.onerror = function () {
-      errorBox.style.display = "block";
-      errorBox.innerHTML =
-        "图片加载失败<br>" +
-        "ID: " + braceletId + "<br>" +
-        "Image Number: " + imageNumber + "<br>" +
-        "Path: " + imagePath + "<br><br>" +
-        "请检查 images 文件夹里是否有：" + imageNumber + ".jpg";
-    };
-
-    displayImg.src = finalSrc;
+    // 直接显示图片
+    document.getElementById("dailyImage").src = "images/" + imageNumber + ".jpg";
   </script>
 </body>
 </html>
