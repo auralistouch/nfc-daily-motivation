@@ -2,15 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Auralis Touch</title>
-
   <style>
     html, body {
       margin: 0;
@@ -28,107 +21,28 @@
       display: block;
       background: black;
     }
-
-    #errorBox {
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: 20px;
-      z-index: 9999;
-      color: white;
-      background: rgba(0, 0, 0, 0.72);
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      line-height: 1.5;
-      font-family: Arial, sans-serif;
-      display: none;
-      word-break: break-all;
-    }
   </style>
 </head>
 <body>
   <img id="dailyImage" alt="Daily Image" />
-  <div id="errorBox"></div>
 
   <script>
     const totalImages = 30;
-    const imgEl = document.getElementById("dailyImage");
-    const errorBox = document.getElementById("errorBox");
 
-    let currentBlobUrl = null;
-    let isLoading = false;
+    const params = new URLSearchParams(window.location.search);
+    const braceletId = params.get("id") || "A000";
 
-    function getImageNumber() {
-      const params = new URLSearchParams(window.location.search);
-      const braceletId = params.get("id") || "A000";
+    const idNumber = parseInt(braceletId.replace(/\D/g, ""), 10) || 0;
 
-      const idNumber = parseInt(braceletId.replace(/\D/g, ""), 10) || 0;
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 0);
+    const diff = today - startOfYear;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
 
-      const today = new Date();
-      const startOfYear = new Date(today.getFullYear(), 0, 0);
-      const diff = today - startOfYear;
-      const oneDay = 1000 * 60 * 60 * 24;
-      const dayOfYear = Math.floor(diff / oneDay);
+    const imageNumber = ((idNumber + dayOfYear - 1) % totalImages) + 1;
 
-      return ((idNumber + dayOfYear - 1) % totalImages) + 1;
-    }
-
-    async function loadDailyImage() {
-      if (isLoading) return;
-      isLoading = true;
-      errorBox.style.display = "none";
-
-      try {
-        const imageNumber = getImageNumber();
-        const imagePath = "images/" + imageNumber + ".jpg";
-
-        // 用 fetch 取图片，避免 Safari 反复刷新/重复唤起时黑屏
-        const response = await fetch(imagePath, {
-          cache: "no-store"
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to load " + imagePath);
-        }
-
-        const blob = await response.blob();
-
-        if (currentBlobUrl) {
-          URL.revokeObjectURL(currentBlobUrl);
-        }
-
-        currentBlobUrl = URL.createObjectURL(blob);
-        imgEl.src = currentBlobUrl;
-      } catch (error) {
-        errorBox.style.display = "block";
-        errorBox.innerHTML =
-          "图片加载失败<br>" +
-          (error && error.message ? error.message : "Unknown error");
-      } finally {
-        isLoading = false;
-      }
-    }
-
-    // 首次加载
-    loadDailyImage();
-
-    // Safari 从缓存页返回时再加载一次
-    window.addEventListener("pageshow", function () {
-      loadDailyImage();
-    });
-
-    // 页面重新回到前台时再加载一次
-    document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") {
-        loadDailyImage();
-      }
-    });
-
-    // 页面重新获得焦点时再加载一次
-    window.addEventListener("focus", function () {
-      loadDailyImage();
-    });
+    document.getElementById("dailyImage").src = "images/" + imageNumber + ".jpg";
   </script>
 </body>
 </html>
